@@ -12,7 +12,28 @@ interface PromptExample {
 interface GeneratedPrompt {
   input: string
   output: string
+  language: string
+  model: string
 }
+
+interface SelectOption {
+  value: string
+  label: string
+  description: string
+}
+
+const LANGUAGES: SelectOption[] = [
+  { value: 'English', label: 'English', description: 'Generate in English' },
+  { value: 'Türkçe', label: 'Türkçe', description: 'Türkçe üret' },
+  { value: 'Español', label: 'Español', description: 'Generar en español' },
+  { value: 'Deutsch', label: 'Deutsch', description: 'Auf Deutsch generieren' },
+]
+
+const MODELS: SelectOption[] = [
+  { value: 'GPT-4o', label: 'GPT-4o', description: 'Balanced and versatile' },
+  { value: 'Claude 3.5 Sonnet', label: 'Claude 3.5 Sonnet', description: 'Detailed and thoughtful' },
+  { value: 'Gemini 1.5 Pro', label: 'Gemini 1.5 Pro', description: 'Fast and capable' },
+]
 
 const EXAMPLES: PromptExample[] = [
   {
@@ -35,10 +56,12 @@ const EXAMPLES: PromptExample[] = [
   },
 ]
 
-function buildPrompt(idea: string): string {
+function buildPrompt(idea: string, language: string, model: string): string {
   const clean = idea.trim()
   return [
-    `You are an expert assistant. Your task: ${clean}.`,
+    `You are an expert assistant powered by ${model}. Your task: ${clean}.`,
+    '',
+    `Respond entirely in ${language}.`,
     '',
     'Follow these instructions:',
     '1. Ask any clarifying questions only if strictly necessary.',
@@ -52,6 +75,8 @@ function buildPrompt(idea: string): string {
 
 export function PromptGenerator() {
   const [idea, setIdea] = useState('')
+  const [language, setLanguage] = useState('English')
+  const [model, setModel] = useState('GPT-4o')
   const [result, setResult] = useState<GeneratedPrompt | null>(null)
   const [copied, setCopied] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -60,13 +85,23 @@ export function PromptGenerator() {
 
   const handleGenerate = () => {
     if (!canGenerate) return
-    setResult({ input: idea.trim(), output: buildPrompt(idea) })
+    setResult({
+      input: idea.trim(),
+      output: buildPrompt(idea, language, model),
+      language,
+      model,
+    })
     setCopied(false)
   }
 
   const handleExample = (example: PromptExample) => {
     setIdea(example.seed)
-    setResult({ input: example.seed, output: buildPrompt(example.seed) })
+    setResult({
+      input: example.seed,
+      output: buildPrompt(example.seed, language, model),
+      language,
+      model,
+    })
     setCopied(false)
     textareaRef.current?.focus()
   }
@@ -105,6 +140,44 @@ export function PromptGenerator() {
         <span className="pointer-events-none absolute bottom-3 right-4 hidden text-xs text-muted-foreground sm:block">
           ⌘ / Ctrl + Enter
         </span>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <label className="group rounded-2xl border border-border bg-card px-4 py-3 transition-colors duration-300 focus-within:border-foreground">
+          <span className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Output language
+          </span>
+          <select
+            value={language}
+            onChange={(event) => setLanguage(event.target.value)}
+            className="w-full cursor-pointer appearance-none bg-transparent text-sm font-medium text-foreground outline-none"
+            aria-label="Output language"
+          >
+            {LANGUAGES.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="group rounded-2xl border border-border bg-card px-4 py-3 transition-colors duration-300 focus-within:border-foreground">
+          <span className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            AI model
+          </span>
+          <select
+            value={model}
+            onChange={(event) => setModel(event.target.value)}
+            className="w-full cursor-pointer appearance-none bg-transparent text-sm font-medium text-foreground outline-none"
+            aria-label="AI model"
+          >
+            {MODELS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <button
@@ -154,7 +227,12 @@ export function PromptGenerator() {
       {result && (
         <div className="mt-8 rounded-2xl border border-border bg-card p-5">
           <div className="mb-3 flex items-center justify-between gap-4">
-            <h2 className="text-sm font-medium text-muted-foreground">Generated prompt</h2>
+            <div>
+              <h2 className="text-sm font-medium text-muted-foreground">Generated prompt</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {result.model} · {result.language}
+              </p>
+            </div>
             <button
               type="button"
               onClick={handleCopy}
