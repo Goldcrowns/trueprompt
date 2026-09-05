@@ -30,9 +30,9 @@ const LANGUAGES: SelectOption[] = [
 ]
 
 const MODELS: SelectOption[] = [
-  { value: 'google/gemini-2.5-flash', label: 'Gemini 2.5 Flash', description: 'Fast and balanced' },
-  { value: 'google/gemini-2.5-pro', label: 'Gemini 2.5 Pro', description: 'Detailed reasoning' },
-  { value: 'google/gemini-3.5-flash', label: 'Gemini 3.5 Flash', description: 'Latest fast model' },
+  { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash', description: 'Fast and balanced' },
+  { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro', description: 'Detailed reasoning' },
+  { value: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash', description: 'Latest fast model' },
 ]
 
 const EXAMPLES: PromptExample[] = [
@@ -76,7 +76,7 @@ function buildPrompt(idea: string, language: string, model: string): string {
 export function PromptGenerator() {
   const [idea, setIdea] = useState('')
   const [language, setLanguage] = useState('English')
-  const [model, setModel] = useState('GPT-4o')
+  const [model, setModel] = useState('gemini-2.5-flash')
   const [result, setResult] = useState<GeneratedPrompt | null>(null)
   const [copied, setCopied] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
