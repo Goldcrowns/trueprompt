@@ -30,9 +30,9 @@ const LANGUAGES: SelectOption[] = [
 ]
 
 const MODELS: SelectOption[] = [
-  { value: 'GPT-4o', label: 'GPT-4o', description: 'Balanced and versatile' },
-  { value: 'Claude 3.5 Sonnet', label: 'Claude 3.5 Sonnet', description: 'Detailed and thoughtful' },
-  { value: 'Gemini 1.5 Pro', label: 'Gemini 1.5 Pro', description: 'Fast and capable' },
+  { value: 'google/gemini-2.5-flash', label: 'Gemini 2.5 Flash', description: 'Fast and balanced' },
+  { value: 'google/gemini-2.5-pro', label: 'Gemini 2.5 Pro', description: 'Detailed reasoning' },
+  { value: 'google/gemini-3.5-flash', label: 'Gemini 3.5 Flash', description: 'Latest fast model' },
 ]
 
 const EXAMPLES: PromptExample[] = [
@@ -79,19 +79,31 @@ export function PromptGenerator() {
   const [model, setModel] = useState('GPT-4o')
   const [result, setResult] = useState<GeneratedPrompt | null>(null)
   const [copied, setCopied] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [error, setError] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const canGenerate = useMemo(() => idea.trim().length > 0, [idea])
 
-  const handleGenerate = () => {
-    if (!canGenerate) return
-    setResult({
-      input: idea.trim(),
-      output: buildPrompt(idea, language, model),
-      language,
-      model,
-    })
-    setCopied(false)
+  const handleGenerate = async () => {
+    if (!canGenerate || isGenerating) return
+    setIsGenerating(true)
+    setError('')
+    try {
+      const response = await fetch('/api/generate-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: idea, language, model }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Generation failed.')
+      setResult({ input: idea.trim(), output: data.output, language, model })
+      setCopied(false)
+    } catch (generationError) {
+      setError(generationError instanceof Error ? generationError.message : 'Generation failed.')
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   const handleExample = (example: PromptExample) => {
@@ -185,13 +197,19 @@ export function PromptGenerator() {
         </div>
       </div>
 
+      {error && (
+        <p role="alert" className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {error}
+        </p>
+      )}
+
       <button
         type="button"
         onClick={handleGenerate}
-        disabled={!canGenerate}
+        disabled={!canGenerate || isGenerating}
         className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-foreground bg-foreground px-6 py-4 text-base font-medium text-background transition-colors duration-300 hover:bg-background hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
       >
-        Generate Prompt
+        {isGenerating ? 'Generating with Gemini…' : 'Generate Prompt'}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="18"
