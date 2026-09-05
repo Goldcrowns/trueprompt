@@ -12,7 +12,28 @@ interface PromptExample {
 interface GeneratedPrompt {
   input: string
   output: string
+  language: string
+  model: string
 }
+
+interface SelectOption {
+  value: string
+  label: string
+  description: string
+}
+
+const LANGUAGES: SelectOption[] = [
+  { value: 'English', label: 'English', description: 'Generate in English' },
+  { value: 'Türkçe', label: 'Türkçe', description: 'Türkçe üret' },
+  { value: 'Español', label: 'Español', description: 'Generar en español' },
+  { value: 'Deutsch', label: 'Deutsch', description: 'Auf Deutsch generieren' },
+]
+
+const MODELS: SelectOption[] = [
+  { value: 'google/gemini-2.5-flash', label: 'Gemini 2.5 Flash', description: 'Fast and balanced' },
+  { value: 'google/gemini-2.5-pro', label: 'Gemini 2.5 Pro', description: 'Detailed reasoning' },
+  { value: 'google/gemini-3.5-flash', label: 'Gemini 3.5 Flash', description: 'Latest fast model' },
+]
 
 const EXAMPLES: PromptExample[] = [
   {
@@ -35,10 +56,12 @@ const EXAMPLES: PromptExample[] = [
   },
 ]
 
-function buildPrompt(idea: string): string {
+function buildPrompt(idea: string, language: string, model: string): string {
   const clean = idea.trim()
   return [
-    `You are an expert assistant. Your task: ${clean}.`,
+    `You are an expert assistant powered by ${model}. Your task: ${clean}.`,
+    '',
+    `Respond entirely in ${language}.`,
     '',
     'Follow these instructions:',
     '1. Ask any clarifying questions only if strictly necessary.',
@@ -52,21 +75,45 @@ function buildPrompt(idea: string): string {
 
 export function PromptGenerator() {
   const [idea, setIdea] = useState('')
+  const [language, setLanguage] = useState('English')
+  const [model, setModel] = useState('GPT-4o')
   const [result, setResult] = useState<GeneratedPrompt | null>(null)
   const [copied, setCopied] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [error, setError] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const canGenerate = useMemo(() => idea.trim().length > 0, [idea])
 
-  const handleGenerate = () => {
-    if (!canGenerate) return
-    setResult({ input: idea.trim(), output: buildPrompt(idea) })
-    setCopied(false)
+  const handleGenerate = async () => {
+    if (!canGenerate || isGenerating) return
+    setIsGenerating(true)
+    setError('')
+    try {
+      const response = await fetch('/api/generate-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: idea, language, model }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Generation failed.')
+      setResult({ input: idea.trim(), output: data.output, language, model })
+      setCopied(false)
+    } catch (generationError) {
+      setError(generationError instanceof Error ? generationError.message : 'Generation failed.')
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   const handleExample = (example: PromptExample) => {
     setIdea(example.seed)
-    setResult({ input: example.seed, output: buildPrompt(example.seed) })
+    setResult({
+      input: example.seed,
+      output: buildPrompt(example.seed, language, model),
+      language,
+      model,
+    })
     setCopied(false)
     textareaRef.current?.focus()
   }
@@ -107,13 +154,62 @@ export function PromptGenerator() {
         </span>
       </div>
 
+      <div className="mt-5 rounded-2xl border border-border bg-card p-4">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+          Prompt settings
+        </p>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label className="group rounded-xl border border-border bg-background px-4 py-3 transition-colors duration-300 focus-within:border-foreground">
+            <span className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Output language
+            </span>
+          <select
+            value={language}
+            onChange={(event) => setLanguage(event.target.value)}
+            className="w-full cursor-pointer appearance-none bg-transparent text-sm font-medium text-foreground outline-none"
+            aria-label="Output language"
+          >
+            {LANGUAGES.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          </label>
+
+          <label className="group rounded-xl border border-border bg-background px-4 py-3 transition-colors duration-300 focus-within:border-foreground">
+          <span className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            AI model
+          </span>
+          <select
+            value={model}
+            onChange={(event) => setModel(event.target.value)}
+            className="w-full cursor-pointer appearance-none bg-transparent text-sm font-medium text-foreground outline-none"
+            aria-label="AI model"
+          >
+            {MODELS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+            </select>
+          </label>
+        </div>
+      </div>
+
+      {error && (
+        <p role="alert" className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {error}
+        </p>
+      )}
+
       <button
         type="button"
         onClick={handleGenerate}
-        disabled={!canGenerate}
+        disabled={!canGenerate || isGenerating}
         className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-foreground bg-foreground px-6 py-4 text-base font-medium text-background transition-colors duration-300 hover:bg-background hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
       >
-        Generate Prompt
+        {isGenerating ? 'Generating with Gemini…' : 'Generate Prompt'}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="18"
@@ -154,7 +250,12 @@ export function PromptGenerator() {
       {result && (
         <div className="mt-8 rounded-2xl border border-border bg-card p-5">
           <div className="mb-3 flex items-center justify-between gap-4">
-            <h2 className="text-sm font-medium text-muted-foreground">Generated prompt</h2>
+            <div>
+              <h2 className="text-sm font-medium text-muted-foreground">Generated prompt</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {result.model} · {result.language}
+              </p>
+            </div>
             <button
               type="button"
               onClick={handleCopy}
