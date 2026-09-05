@@ -142,11 +142,15 @@ export function PromptGenerator() {
         </span>
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <label className="group rounded-2xl border border-border bg-card px-4 py-3 transition-colors duration-300 focus-within:border-foreground">
-          <span className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Output language
-          </span>
+      <div className="mt-5 rounded-2xl border border-border bg-card p-4">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+          Prompt settings
+        </p>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label className="group rounded-xl border border-border bg-background px-4 py-3 transition-colors duration-300 focus-within:border-foreground">
+            <span className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Output language
+            </span>
           <select
             value={language}
             onChange={(event) => setLanguage(event.target.value)}
@@ -159,9 +163,9 @@ export function PromptGenerator() {
               </option>
             ))}
           </select>
-        </label>
+          </label>
 
-        <label className="group rounded-2xl border border-border bg-card px-4 py-3 transition-colors duration-300 focus-within:border-foreground">
+          <label className="group rounded-xl border border-border bg-background px-4 py-3 transition-colors duration-300 focus-within:border-foreground">
           <span className="mb-1 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
             AI model
           </span>
@@ -176,8 +180,9 @@ export function PromptGenerator() {
                 {option.label}
               </option>
             ))}
-          </select>
-        </label>
+            </select>
+          </label>
+        </div>
       </div>
 
       <button
