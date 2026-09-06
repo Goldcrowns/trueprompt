@@ -30,9 +30,9 @@ const LANGUAGES: SelectOption[] = [
 ]
 
 const MODELS: SelectOption[] = [
-  { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash', description: 'Fast and balanced' },
-  { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro', description: 'Detailed reasoning' },
-  { value: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash', description: 'Latest fast model' },
+  { value: 'gemini-flash-latest', label: 'Gemini Flash', description: 'Fast and balanced' },
+  { value: 'gemini-3.6-flash', label: 'Gemini 3.6', description: 'Detailed reasoning' },
+  { value: 'gemini-flash-lite-latest', label: 'Gemini Flash Lite', description: 'Latest fast model' },
 ]
 
 const EXAMPLES: PromptExample[] = [
