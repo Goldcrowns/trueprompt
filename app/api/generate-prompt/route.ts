@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     const input = typeof body.input === 'string' ? body.input.trim() : ''
     const language = typeof body.language === 'string' ? body.language : 'English'
-    const model = typeof body.model === 'string' ? body.model : 'gemini-2.5-flash'
+    const model = typeof body.model === 'string' ? body.model : 'gemini-flash-latest'
 
     if (!input || input.length > 5000) {
       return NextResponse.json({ error: 'Input must be between 1 and 5000 characters.' }, { status: 400 })
