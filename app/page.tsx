@@ -22,7 +22,7 @@ export default function Page() {
             Prompt Engineering, Simplified
           </p>
           <h1 className="text-balance text-4xl font-bold leading-tight tracking-tight sm:text-5xl md:text-6xl">
-            Ask the Right Question, Get the Best Answer.
+            Transform vague requests into powerful AI prompts
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg">
             TruePrompt turns your rough idea into a precise, structured prompt — so every AI
