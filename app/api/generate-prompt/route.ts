@@ -3,9 +3,7 @@ import { generateText } from 'ai'
 import { NextResponse } from 'next/server'
 
 const ALLOWED_MODELS = new Set([
-  'gemini-flash-latest',
-  'gemini-3.6-flash',
-  'gemini-flash-lite-latest',
+  'gemini-flash-lite-latest'
 ])
 
 export async function POST(request: Request) {
