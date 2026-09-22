@@ -21,8 +21,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unsupported Gemini model.' }, { status: 400 })
     }
 
+    const apiKey = process.env.GEMINI_API_KEY
+
+    if (!apiKey) {
+      return NextResponse.json({ error: 'GEMINI_API_KEY is not configured.' }, { status: 500 })
+    }
+
     const { text } = await generateText({
-      model: google(model),
+      model: google(model, { apiKey }),
       system:
         'You are TruePrompt, an expert prompt engineer. Transform the user idea into one polished, reusable prompt. Return only the final prompt, with clear instructions and useful context. Do not explain your changes.',
       prompt: `Create a high-quality prompt from this idea:\n\n${input}\n\nThe final prompt must be written entirely in ${language}.`,
